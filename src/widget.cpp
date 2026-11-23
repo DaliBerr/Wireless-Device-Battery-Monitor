@@ -438,11 +438,20 @@ std::vector<Piece> Layout(int barW, int barH, int& width, int& height) {
         iconH = std::max(iconH, out[s.icon].m.h);
         textH = std::max(textH, out[s.label].m.h);
     }
-    bool stacked = !g_vertical && g_stacked && !slots.empty() && barH >= iconH + rowGap + textH + barRoom + Px(6);
-    if (g_vertical && !slots.empty()) {
+    const bool vertical = barH > barW;
+    bool stacked = !vertical && g_stacked && !slots.empty() && barH >= iconH + rowGap + textH + barRoom + Px(6);
+    if (vertical) {
         // One block per device, centred in the bar's width: icon, then the percentage (and bolt) under it.
         width = barW;
         int y = Px(6);
+        if (slots.empty()) {
+            // Keep the placeholder's click area as tall as the icon plus its padding.
+            Piece& placeholder = out.front();
+            placeholder.px = (barW - placeholder.m.w) / 2;
+            placeholder.py = y;
+            height = placeholder.m.h + 2 * y;
+            return out;
+        }
         for (const Slot& s : slots) {
             Piece& ic = out[s.icon];
             Piece& lb = out[s.label];
